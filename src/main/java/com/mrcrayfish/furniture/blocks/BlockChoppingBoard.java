@@ -77,6 +77,12 @@ public class BlockChoppingBoard extends BlockFurnitureTile
                         heldItem.damageItem(1, playerIn);
                     }
                     return true;
+                } else if(heldItem.getItem() == FurnitureItems.TOAST)
+                {
+                    tileEntityChoppingBoard.addFood(new ItemStack(heldItem.getItem(), 1, heldItem.getItemDamage()));
+                    TileEntityUtil.markBlockForUpdate(worldIn, pos);
+                    heldItem.shrink(1);
+                    return true;
                 }
             }
             if(tileEntityChoppingBoard.getFood() != null)

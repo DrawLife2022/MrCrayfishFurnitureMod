@@ -8,18 +8,32 @@ import com.mrcrayfish.furniture.util.TileEntityUtil;
 import net.minecraft.entity.item.EntityItem;
 import net.minecraft.item.ItemStack;
 import net.minecraft.nbt.NBTTagCompound;
+import net.minecraft.nbt.NBTTagList;
 import net.minecraft.util.SoundCategory;
+import net.minecraftforge.common.util.Constants;
+
+import java.util.ArrayList;
 
 public class TileEntityChoppingBoard extends TileEntitySyncClient implements ISimpleInventory
 {
-    private ItemStack food = null;
+    private ArrayList<ItemStack> food = new ArrayList<>();
 
     public void setFood(ItemStack food)
     {
-        this.food = food;
+        this.food.add(0, food);
+    }
+
+    public void addFood(ItemStack food)
+    {
+        this.food.add(food);
     }
 
     public ItemStack getFood()
+    {
+        return food.isEmpty() ? null : food.get(0);
+    }
+
+    public ArrayList<ItemStack> getAllFood()
     {
         return food;
     }
@@ -28,7 +42,7 @@ public class TileEntityChoppingBoard extends TileEntitySyncClient implements ISi
     {
         if(food != null)
         {
-            RecipeData data = RecipeAPI.getChoppingBoardRecipeFromInput(food);
+            RecipeData data = RecipeAPI.getChoppingBoardRecipeFromInput(food.get(0));
             if(data != null)
             {
                 if(!world.isRemote)
@@ -49,10 +63,14 @@ public class TileEntityChoppingBoard extends TileEntitySyncClient implements ISi
     public void readFromNBT(NBTTagCompound tagCompound)
     {
         super.readFromNBT(tagCompound);
-        if(tagCompound.hasKey("Food", 10))
+        if(tagCompound.hasKey("Foods", 10))
         {
-            NBTTagCompound nbt = tagCompound.getCompoundTag("Food");
-            food = new ItemStack(nbt);
+            NBTTagList itemList = tagCompound.getTagList("Foods", Constants.NBT.TAG_COMPOUND);
+
+            for (int i = 0; i < itemList.tagCount(); i++) {
+                NBTTagCompound itemTag = itemList.getCompoundTagAt(i);
+                food.add(new ItemStack(itemTag));
+            }
         }
     }
 
@@ -60,11 +78,13 @@ public class TileEntityChoppingBoard extends TileEntitySyncClient implements ISi
     public NBTTagCompound writeToNBT(NBTTagCompound tagCompound)
     {
         super.writeToNBT(tagCompound);
-        NBTTagCompound nbt = new NBTTagCompound();
-        if(food != null)
-        {
-            food.writeToNBT(nbt);
-            tagCompound.setTag("Food", nbt);
+        if(!food.isEmpty()) {
+            NBTTagList itemList = new NBTTagList();
+            for (ItemStack stack : food) {
+                if(stack == null) continue;
+                itemList.appendTag(stack.serializeNBT());
+            }
+            tagCompound.setTag("Foods", itemList);
         }
         return tagCompound;
     }
@@ -78,7 +98,7 @@ public class TileEntityChoppingBoard extends TileEntitySyncClient implements ISi
     @Override
     public ItemStack getItem(int i)
     {
-        return food;
+        return food.get(i);
     }
 
     @Override

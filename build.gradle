@@ -1,46 +1,22 @@
-buildscript {
-    repositories {
-        maven { url = 'https://maven.minecraftforge.net/' }
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'net.minecraftforge.gradle:ForgeGradle:3.+'
-    }
+def module_name = 'furniture'
+def module_version = '0.0.1f'
+
+version = module_version
+
+// Only edit below this line, the above code adds and enables the necessary things for Forge to be setup.
+
+apply plugin: 'idea'
+apply plugin: 'com.github.johnrengelman.shadow'
+
+configurations {
+    embed
+    compile.extendsFrom(embed)
 }
-apply plugin: 'net.minecraftforge.gradle'
-apply plugin: 'eclipse'
-apply plugin: 'maven-publish'
 
-version = "6.3.2-1.12.2"
-group = "com.mrcrayfish"
-archivesBaseName = "furniture"
-
-sourceCompatibility = targetCompatibility = compileJava.sourceCompatibility = compileJava.targetCompatibility = '1.8'
-
-minecraft {
-    mappings channel: 'snapshot', version: '20171003-1.12'
-
-    runs {
-        client {
-            workingDirectory project.file('run')
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            mods {
-                cfm {
-                    source sourceSets.main
-                }
-            }
-        }
-        server {
-            property 'forge.logging.markers', 'SCAN,REGISTRIES,REGISTRYDUMP'
-            property 'forge.logging.console.level', 'debug'
-            mods {
-                cfm {
-                    source sourceSets.main
-                }
-            }
-        }
-    }
+dependencies {
+    compileOnly fg.deobf('CraftTweaker2:CraftTweaker2-API:1.12-4.1.20.675')
+    compileOnly fg.deobf('CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.675')
+    compileOnly fg.deobf('CraftTweaker2:ZenScript:1.12-4.1.20.675')
 }
 
 repositories {
@@ -50,44 +26,33 @@ repositories {
     }
 }
 
-dependencies {
-    minecraft 'net.minecraftforge:forge:1.12.2-14.23.5.2860'
-    compileOnly fg.deobf('CraftTweaker2:CraftTweaker2-API:1.12-4.1.20.675')
-    compileOnly fg.deobf('CraftTweaker2:CraftTweaker2-MC1120-Main:1.12-4.1.20.675')
-    compileOnly fg.deobf('CraftTweaker2:ZenScript:1.12-4.1.20.675')
-}
-
-jar {
-    manifest {
-        attributes([
-                "Specification-Title": "MrCrayfish's Furniture Mod",
-                "Specification-Vendor": "MrCrayfish",
-                "Specification-Version": "1", // We are version 1 of ourselves
-                "Implementation-Title": project.name,
-                "Implementation-Version": "${version}",
-                "Implementation-Vendor" :"MrCrayfish",
-                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ")
-        ])
-    }
-}
-
-jar.finalizedBy('reobfJar')
-
-publishing {
-    publications {
-        mavenJava(MavenPublication) {
-            artifact jar
-        }
-    }
-    repositories {
-        maven {
-            url "file:///${project.projectDir}/mcmodsrepo"
-        }
-    }
-}
 
 sourceSets {
     main {
         output.resourcesDir = output.classesDir
+    }
+}
+
+jar {
+    from(configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }) {
+        exclude 'META-INF', 'META-INF/**'
+    }
+    manifest {
+        attributes([
+                "Specification-Title": module_name,
+                "Specification-Vendor": module_name,
+                "Specification-Version": module_version,
+                "Implementation-Title": project.name,
+                "Implementation-Version": "${version}",
+                "Implementation-Vendor" : module_name,
+                "Implementation-Timestamp": new Date().format("yyyy-MM-dd'T'HH:mm:ssZ"),
+                "FMLAT": "drawlife_at.cfg",
+                "FMLCorePlugin": "eu.drawlife.common.asm.DrawLifeLoadingPlugin",
+                "FMLCorePluginContainsFMLMod": true,
+                "ForceLoadAsMod": true,
+                "TweakClass": "org.spongepowered.asm.launch.MixinTweaker",
+                "TweakOrder": 0,
+                "MixinConfigs": "mixins.drawlife.json"
+        ])
     }
 }

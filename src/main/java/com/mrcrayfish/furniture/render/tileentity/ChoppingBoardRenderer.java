@@ -3,58 +3,43 @@ package com.mrcrayfish.furniture.render.tileentity;
 import com.mrcrayfish.furniture.tileentity.TileEntityChoppingBoard;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.renderer.GlStateManager;
+import net.minecraft.client.renderer.RenderHelper;
+import net.minecraft.client.renderer.block.model.ItemCameraTransforms;
 import net.minecraft.client.renderer.tileentity.TileEntitySpecialRenderer;
 import net.minecraft.entity.item.EntityItem;
+import net.minecraft.item.ItemStack;
 import org.lwjgl.opengl.GL11;
+
+import java.util.ArrayList;
 
 public class ChoppingBoardRenderer extends TileEntitySpecialRenderer<TileEntityChoppingBoard>
 {
-    private EntityItem entityFood = new EntityItem(Minecraft.getMinecraft().world, 0D, 0D, 0D);
-
     @Override
     public void render(TileEntityChoppingBoard board, double x, double y, double z, float partialTicks, int destroyStage, float alpha)
     {
-        int metadata = board.getBlockMetadata();
-
-        if(board.getFood() != null)
+        if(!board.getAllFood().isEmpty())
         {
-            entityFood.setItem(board.getFood());
-
-            GL11.glPushMatrix();
-            this.entityFood.hoverStart = 0.0F;
-
-            float xOffset = 0.0F;
-            float zOffset = 0.0F;
-
-            switch(metadata)
+            GlStateManager.pushMatrix();
             {
-                case 0:
-                    zOffset -= 0.1F;
-                    break;
-                case 1:
-                    xOffset += 0.3F;
-                    zOffset += 0.2F;
-                    break;
-                case 2:
-                    zOffset += 0.5F;
-                    break;
-                case 3:
-                    xOffset -= 0.3F;
-                    zOffset += 0.2F;
-                    break;
+                GlStateManager.translate(x, y, z);
+                GlStateManager.translate(0.5, 0.05, 0.5);
+                GlStateManager.rotate(-90F, 0, 1, 0);
+                GlStateManager.translate(-0.5, -0.5, -0.5);
+                GlStateManager.rotate(90F, 1, 0, 0);
+                GlStateManager.translate(0.5, 0.5, -0.5 - 0.03125);
+
+                GlStateManager.scale(0.75F, 0.75F, 0.75F);
+                GlStateManager.pushAttrib();
+                RenderHelper.enableStandardItemLighting();
+                for (int i = 0; i < board.getAllFood().size(); i++) {
+                    if(board.getAllFood().get(i) == null) continue;
+                    Minecraft.getMinecraft().getRenderItem().renderItem(board.getAllFood().get(i), ItemCameraTransforms.TransformType.FIXED);
+                    GlStateManager.translate(0, 0f, -0.05F);
+                }
+                RenderHelper.disableStandardItemLighting();
+                GlStateManager.popAttrib();
             }
-
-            GL11.glDisable(GL11.GL_LIGHTING);
-
-            GL11.glTranslatef((float) x + 0.5F + xOffset, (float) y + 0.02F, (float) z + 0.3F + zOffset);
-            GL11.glRotatef(metadata * -90F, 0, 1, 0);
-            GL11.glRotatef(180, 0, 1, 1);
-            GlStateManager.translate(0, -0.15, 0);
-            Minecraft.getMinecraft().getRenderManager().renderEntity(entityFood, 0.0D, 0.0D, 0.075D, 0.0F, 0.0F, false);
-
-            GL11.glEnable(GL11.GL_LIGHTING);
-
-            GL11.glPopMatrix();
+            GlStateManager.popMatrix();
         }
     }
 }
