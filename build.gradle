@@ -27,12 +27,6 @@ repositories {
 }
 
 
-sourceSets {
-    main {
-        output.resourcesDir = output.classesDir
-    }
-}
-
 jar {
     from(configurations.embed.collect { it.isDirectory() ? it : zipTree(it) }) {
         exclude 'META-INF', 'META-INF/**'
